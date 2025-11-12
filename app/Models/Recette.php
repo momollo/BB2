@@ -7,5 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Recette extends Model
 {
-    protected $fillable = ['title', 'body'];
+    use HasFactory;
+        protected $fillable = ['title', 'body'];
 }
