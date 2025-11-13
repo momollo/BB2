@@ -20,6 +20,7 @@ class RecetteFactory extends Factory
         return [
             'title' => fake()->sentence(),   // génère un titre aléatoire
             'body' => fake()->paragraph(),  // génère un texte de 5 phrases
+            'ingrédient' => fake()->paragraph(),
         ];
     }
 }

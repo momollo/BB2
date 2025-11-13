@@ -24,8 +24,13 @@
         </div>
 
         <div>
-            <label>Description :</label>
+            <label>recette :</label>
             <textarea name="body">{{ old('body') }}</textarea>
+        </div>
+
+        <div>
+            <label>ingrédient :</label>
+            <textarea name="ingrédient">{{ old('ingrédient') }}</textarea>
         </div>
 
         <div>
