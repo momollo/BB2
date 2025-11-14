@@ -29,6 +29,10 @@
             <label>Description :</label>
             <textarea name="body">{{ $recette->body }}</textarea>
         </div>
+ <div>
+            <label>ingrédient :</label>
+            <textarea name="ingrédient">{{ $recette->ingrédient }}</textarea>
+        </div>
 
         <div>
             <button type="submit">Mettre à jour</button>

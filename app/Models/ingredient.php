@@ -9,5 +9,5 @@ class Recette extends Model
 {
     use HasFactory;
     protected $table = 'recettes';
-        protected $fillable = ['title', 'body', 'ingrédient'];
+        protected $fillable = ['', ''];
 }

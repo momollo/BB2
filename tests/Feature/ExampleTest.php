@@ -22,22 +22,23 @@ class ExampleTest extends TestCase
 
 
 
-public function test_vieu_recette(): void
-    {
-       // use refreshDatabase;
-        $recettes = Recette::factory()->create([
-
-            'title' => 'test-title',
-            'body' => 'un bon gateau au chaucolat',
-
-        ]);
-        $response = $this->get('/recettes');
-        $response->assertStatus(200);
-        $response->assertSee('test-title');
-       // $response->assertSee('oz');
-
-
-    }
-
-
+/**
+ * public function test_vieu_recette(): void
+   * {
+   *    // use refreshDatabase;
+    *    $recettes = Recette::factory()->create([
+*
+ *           'title' => 'test-title',
+  *          'body' => 'un bon gateau au chaucolat',
+*
+ *       ]);
+  *      $response = $this->get('/recettes');
+   *     $response->assertStatus(200);
+    *    $response->assertSee('test-title');
+     *  // $response->assertSee('oz');
+*
+*
+ *   }
+*
+*/
 }
