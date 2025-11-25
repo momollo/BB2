@@ -1,0 +1,99 @@
+@startuml Recettes_ER_Diagram
+skinparam backgroundColor #FEFEFE
+skinparam classBackgroundColor #F0F0F0
+skinparam classBorderColor #333333
+skinparam arrowColor #333333
+skinparam NoteBkgColor #FFFFCC
+skinparam NoteBorderColor #999999
+
+' ========== Entity Relationship Diagram ==========
+
+class "users" as users {
+    *id : int (PK)
+    --
+    name : varchar(255)
+    email : varchar(255) (UNIQUE)
+    password : varchar(255)
+    remember_token : varchar(100)
+    email_verified_at : timestamp
+    created_at : timestamp
+    updated_at : timestamp
+}
+
+class "recettes" as recettes {
+    *id : int (PK)
+    --
+    title : varchar(255)
+    body : text
+    user_id : int (FK)
+    created_at : timestamp
+    updated_at : timestamp
+}
+
+class "personal_access_tokens" as tokens {
+    *id : int (PK)
+    --
+    tokenable_type : varchar(255)
+    tokenable_id : bigint
+    name : varchar(255)
+    token : varchar(64) (UNIQUE)
+    abilities : text
+    last_used_at : timestamp
+    created_at : timestamp
+    updated_at : timestamp
+}
+
+class "password_reset_tokens" as reset_tokens {
+    *email : varchar(255) (PK)
+    --
+    token : varchar(255)
+    created_at : timestamp
+}
+
+class "failed_jobs" as failed_jobs {
+    *id : bigint (PK)
+    --
+    uuid : varchar(255) (UNIQUE)
+    connection : text
+    queue : text
+    payload : longtext
+    exception : longtext
+    failed_at : timestamp
+}
+
+' ========== Relationships ==========
+users ||--o{ recettes : "1:N"
+users ||--o{ tokens : "1:N"
+users ||--o{ reset_tokens : "1:N"
+users ||--o{ failed_jobs : "0:N"
+
+note right of users
+  Utilisateurs de l'application
+  Relations:
+  - HasMany recettes
+  - HasMany tokens (Sanctum API)
+end note
+
+note right of recettes
+  Recettes créées par les utilisateurs
+  Relation:
+  - BelongsTo users
+  - Attributes: title, body
+end note
+
+note right of tokens
+  Tokens API pour l'authentification
+  Utilise Laravel Sanctum
+end note
+
+note left of reset_tokens
+  Tokens pour la réinitialisation
+  du mot de passe
+end note
+
+note left of failed_jobs
+  Table de gestion des jobs
+  échoués
+end note
+
+@enduml

@@ -1,0 +1,151 @@
+@startuml Recettes_Architecture_Diagram
+skinparam backgroundColor #FEFEFE
+skinparam PackageBackgroundColor #F0F0F0
+skinparam PackageBorderColor #333333
+skinparam ComponentBackgroundColor #E8F4F8
+skinparam ComponentBorderColor #333333
+skinparam ArrowColor #333333
+skinparam NoteBkgColor #FFFFCC
+skinparam NoteBorderColor #999999
+
+package "Client Layer" {
+    component [Web Browser] as browser
+    component [JavaScript] as js
+}
+
+package "Request/Response Pipeline" {
+    component [HTTP Request] as http_req
+    component [Laravel Router\n(web.php, api.php)] as router
+    component [Middleware Stack] as middleware
+    component [HTTP Response] as http_resp
+}
+
+package "Application Core" {
+    package "Controllers" {
+        component [RecetteController] as controller
+        component [Controller Base] as base_controller
+    }
+    
+    package "Models (Eloquent ORM)" {
+        component [User Model] as user_model
+        component [Recette Model] as recette_model
+        component [Model Base] as base_model
+    }
+    
+    package "Services & Business Logic" {
+        component [Request Validation] as validation
+        component [Authentication] as auth
+        component [Authorization] as authz
+    }
+}
+
+package "Presentation Layer" {
+    component [Blade Templates] as blade
+    component [index.blade.php] as view_index
+    component [create.blade.php] as view_create
+    component [show.blade.php] as view_show
+    component [edit.blade.php] as view_edit
+}
+
+package "Data Persistence" {
+    component [Database Connection] as db_conn
+    component [MySQL] as db
+    component [users table] as table_users
+    component [recettes table] as table_recettes
+    component [personal_access_tokens] as table_tokens
+}
+
+package "Configuration & Support" {
+    component [config/app.php] as config_app
+    component [config/database.php] as config_db
+    component [config/auth.php] as config_auth
+    component [config/logging.php] as config_log
+    component [Logging Service] as logger
+}
+
+' ========== Connections ==========
+
+browser --> http_req : Click/Submit
+js --> http_req : AJAX (optional)
+http_req --> router : Route matching
+router --> middleware : Apply middlewares
+middleware --> controller : Dispatch to method
+
+controller --> validation : $request->validate()
+controller --> auth : Check authentication
+controller --> authz : Check authorization
+controller --> recette_model : CRUD operations
+controller --> user_model : User data
+
+recette_model --> base_model : Inherit methods
+user_model --> base_model : Inherit methods
+base_model --> db_conn : Query builder
+
+recette_model --> table_recettes : Read/Write
+user_model --> table_users : Read/Write
+db_conn --> table_recettes : Execute queries
+db_conn --> table_users : Execute queries
+
+controller --> blade : Render template
+blade --> view_index : Render index
+blade --> view_create : Render create
+blade --> view_show : Render show
+blade --> view_edit : Render edit
+
+view_index --> http_resp : Return HTML
+view_create --> http_resp : Return HTML
+view_show --> http_resp : Return HTML
+view_edit --> http_resp : Return HTML
+
+http_resp --> browser : Display page
+
+logger --> config_log : Configuration
+logger --> controller : Log events
+logger --> base_model : Log queries
+
+config_app -.-> controller
+config_db -.-> db_conn
+config_auth -.-> auth
+config_log -.-> logger
+
+' ========== Notes ==========
+
+note right of browser
+  Interface utilisateur
+  Affiche les recettes
+  Soumet des formulaires
+end note
+
+note right of controller
+  Gère les requêtes HTTP
+  Valide les données
+  Orchestre la logique métier
+end note
+
+note right of recette_model
+  Model Eloquent
+  - Attributs: title, body
+  - Relation: BelongsTo User
+end note
+
+note right of blade
+  Moteur de templating
+  Génère l'HTML dynamique
+  Accès aux données du controller
+end note
+
+note right of db_conn
+  PDO/MySQL
+  Exécute les requêtes
+  Retourne les résultats
+end note
+
+note bottom of "Data Persistence"
+  **Flux CRUD:**
+  - CREATE: POST /recettes → store()
+  - READ: GET /recettes → index()
+  - UPDATE: PUT /recettes/{id} → update()
+  - DELETE: DELETE /recettes/{id} → destroy()
+end note
+
+@enduml

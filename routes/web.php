@@ -2,6 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RecetteController;
+use App\Http\Controllers\IngredientController;
+
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -16,5 +19,7 @@ use App\Http\Controllers\RecetteController;
 Route::get('/', function () {
     return redirect()->route('recettes.index');
 });
+
+Route::resource('ingredients', IngredientController::class);
 
 Route::resource('recettes', RecetteController::class);

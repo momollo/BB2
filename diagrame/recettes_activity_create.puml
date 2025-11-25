@@ -1,0 +1,37 @@
+@startuml Recettes_Activity_Diagram
+start
+:User navigates to /recettes/create;
+:Browser sends GET request;
+:Router matches to RecetteController;
+:Middleware processes;
+:RecetteController create method;
+:View recette/create rendered;
+:Browser displays create form;
+:User fills form and submits;
+:Browser sends POST to /recettes;
+:Middleware validates;
+:Validate title and body;
+
+partition "Validation" {
+    if (Data Valid) then
+        :Recette created;
+        :INSERT into database;
+        :Redirect to /recettes;
+        :RecetteController index;
+        :Recette query all;
+        :View recette/index rendered;
+        :Display recettes list;
+        :Success message shown;
+        end
+    else
+        :Validation errors;
+        :Redirect to /recettes/create;
+        :Form displayed with errors;
+        :User can correct;
+        end
+    endif
+}
+
+stop
+
+@enduml

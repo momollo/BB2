@@ -1,0 +1,160 @@
+@startuml Recettes_Class_Diagram
+skinparam backgroundColor #FEFEFE
+skinparam classBackgroundColor #F0F0F0
+skinparam classBorderColor #333333
+skinparam arrowColor #333333
+skinparam NoteBkgColor #FFFFCC
+skinparam NoteBorderColor #999999
+
+' ========== Models ==========
+package "Models" #E8F4F8 {
+    abstract class Model {
+        #id: int
+        #created_at: timestamp
+        #updated_at: timestamp
+        --
+        +save(): void
+        +delete(): void
+        +update(attributes): void
+        +all(): Collection
+        +find(id): Model
+    }
+
+    class User extends Model {
+        #name: string
+        #email: string
+        #password: string
+        #remember_token: string
+        #email_verified_at: timestamp
+        --
+        +recettes(): HasMany
+        +setPasswordAttribute(): void
+        +getAuthIdentifier(): int
+    }
+
+    class Recette extends Model {
+        #title: string
+        #body: string
+        #user_id: int
+        --
+        +user(): BelongsTo
+        +getTitle(): string
+        +getBody(): string
+    }
+}
+
+' ========== Controllers ==========
+package "Controllers" #F8E8F4 {
+    abstract class Controller {
+        #middleware: array
+        --
+        +authorize(): void
+        +validate(data): array
+    }
+
+    class RecetteController extends Controller {
+        --
+        +index(): View
+        +create(): View
+        +store(Request): RedirectResponse
+        +show(Recette): View
+        +edit(Recette): View
+        +update(Request, Recette): RedirectResponse
+        +destroy(Recette): RedirectResponse
+    }
+}
+
+' ========== Requests ==========
+package "HTTP" #F8F8E8 {
+    class Request {
+        #attributes: array
+        #query: array
+        #cookies: array
+        --
+        +validate(rules): array
+        +all(): array
+        +get(key): string
+        +user(): User
+    }
+
+    class Response {
+        #status: int
+        #content: string
+        --
+        +send(): void
+        +setStatus(code): self
+    }
+}
+
+' ========== Views ==========
+package "Views" #E8F8E8 {
+    class View {
+        #template: string
+        #data: array
+        --
+        +render(): string
+    }
+
+    class IndexView extends View {
+        --
+        +displayRecettes(recettes): void
+    }
+
+    class CreateView extends View {
+        --
+        +displayForm(): void
+    }
+
+    class ShowView extends View {
+        --
+        +displayRecette(recette): void
+    }
+
+    class EditView extends View {
+        --
+        +displayEditForm(recette): void
+    }
+}
+
+' ========== Relations ==========
+RecetteController --> Request : uses
+RecetteController --> Recette : manipulates
+RecetteController --> User : authenticates
+RecetteController --> View : renders
+
+Recette --> User : belongs_to
+User --> Recette : has_many
+
+IndexView --> Recette : displays
+CreateView --> Recette : form_for
+EditView --> Recette : form_for
+ShowView --> Recette : displays
+
+Request --> Response : generates
+Controller --> Request : receives
+Controller --> Response : sends
+
+View --> Request : accesses
+View --> Response : outputs
+
+' ========== Notes ==========
+note right of RecetteController
+  Contrôleur principal gérant
+  les opérations CRUD sur les recettes
+  Applique les règles de validation
+  Redirige vers les vues appropriées
+end note
+
+note right of Recette
+  Modèle Eloquent pour la table 'recettes'
+  Attributs fillable: title, body
+  Relations avec User (BelongsTo)
+end note
+
+note right of User
+  Modèle Authenticatable
+  Traits: HasApiTokens, HasFactory, Notifiable
+  Relation HasMany vers Recette
+end note
+
+@enduml

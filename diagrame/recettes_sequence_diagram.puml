@@ -1,0 +1,181 @@
+@startuml Recettes_Sequence_Diagram
+skinparam backgroundColor #FEFEFE
+skinparam sequenceArrowColor #333333
+skinparam actorBackgroundColor #E8F4F8
+skinparam participantBackgroundColor #F0F0F0
+skinparam participantBorderColor #333333
+skinparam NoteBkgColor #FFFFCC
+skinparam NoteBorderColor #999999
+
+actor User as user
+participant "Web Browser" as browser
+participant "Laravel Router" as router
+participant "RecetteController" as controller
+participant "Request\n(Middleware)" as middleware
+participant "Recette\n(Model)" as model
+participant "Database" as db
+participant "View\n(Blade)" as view
+participant "HTTP Response" as response
+
+user -> browser: Navigates to /recettes
+
+alt Index - List all Recettes
+    browser -> router: GET /recettes
+    router -> middleware: Process request (CSRF, etc.)
+    middleware -> controller: index()
+    controller -> model: Recette::all()
+    model -> db: SELECT * FROM recettes
+    db --> model: Collection<Recette>
+    model --> controller: $recettes
+    controller -> view: render('recette.index', $recettes)
+    view --> controller: HTML content
+    controller --> response: View response
+    response --> browser: Display list of recettes
+    browser --> user: Show recettes list
+end
+
+user -> browser: Clicks Create button
+
+alt Create - Show form
+    browser -> router: GET /recettes/create
+    router -> middleware: Process request
+    middleware -> controller: create()
+    controller -> view: render('recette.create')
+    view --> controller: Form HTML
+    controller --> response: View response
+    response --> browser: Display form
+    browser --> user: Show create form
+end
+
+user -> browser: Fills form & submits
+
+alt Store - Save new Recette
+    browser -> router: POST /recettes
+    router -> middleware: Process request (CSRF verification)
+    middleware -> controller: store(Request $request)
+    controller -> controller: $request->validate(['title', 'body'])
+    alt Validation Fails
+        controller --> response: Redirect with errors
+        response --> browser: Redirect to /recettes/create
+    else Validation Passes
+        controller -> model: Recette::create($data)
+        model -> db: INSERT INTO recettes (title, body)
+        db --> model: New Recette instance (id)
+        model --> controller: $recette
+        controller --> response: Redirect to /recettes
+        response --> browser: Redirect to recettes.index
+        browser -> router: GET /recettes
+        router -> middleware: Process request
+        middleware -> controller: index()
+        controller -> model: Recette::all()
+        model -> db: SELECT * FROM recettes
+        db --> model: Collection<Recette>
+        model --> controller: $recettes
+        controller -> view: render('recette.index', $recettes)
+        view --> browser: Display updated list
+        browser --> user: Show recettes + success message
+    end
+end
+
+user -> browser: Clicks Edit button on a Recette
+
+alt Edit - Show edit form
+    browser -> router: GET /recettes/{id}/edit
+    router -> middleware: Process request
+    middleware -> controller: edit(Recette $recette)
+    note right of controller
+        Model binding automatically
+        resolves {id} to Recette instance
+    end note
+    controller -> view: render('recette.edit', $recette)
+    view --> controller: Form HTML with data
+    controller --> response: View response
+    response --> browser: Display edit form
+    browser --> user: Show edit form with current data
+end
+
+user -> browser: Modifies form & submits
+
+alt Update - Save changes
+    browser -> router: PUT /recettes/{id}
+    router -> middleware: Process request (CSRF verification)
+    middleware -> controller: update(Request $request, Recette $recette)
+    controller -> controller: $request->validate(['title', 'body'])
+    alt Validation Fails
+        controller --> response: Redirect with errors
+        response --> browser: Redirect to /recettes/{id}/edit
+    else Validation Passes
+        controller -> model: $recette->update($data)
+        model -> db: UPDATE recettes SET title=?, body=? WHERE id=?
+        db --> model: Success
+        model --> controller: Updated Recette
+        controller --> response: Redirect to /recettes
+        response --> browser: Redirect to recettes.index
+        browser --> user: Show updated list
+    end
+end
+
+user -> browser: Clicks View button on a Recette
+
+alt Show - Display single Recette
+    browser -> router: GET /recettes/{id}
+    router -> middleware: Process request
+    middleware -> controller: show(Recette $recette)
+    controller -> view: render('recette.show', $recette)
+    view --> controller: HTML content
+    controller --> response: View response
+    response --> browser: Display recette details
+    browser --> user: Show recette details
+end
+
+user -> browser: Clicks Delete button
+
+alt Destroy - Delete Recette
+    browser -> router: DELETE /recettes/{id}
+    router -> middleware: Process request (CSRF verification)
+    middleware -> controller: destroy(Recette $recette)
+    controller -> model: $recette->delete()
+    model -> db: DELETE FROM recettes WHERE id=?
+    db --> model: Success
+    model --> controller: Boolean true
+    controller --> response: Redirect to /recettes
+    response --> browser: Redirect to recettes.index
+    browser -> router: GET /recettes
+    router -> middleware: Process request
+    middleware -> controller: index()
+    controller -> model: Recette::all()
+    model -> db: SELECT * FROM recettes
+    db --> model: Collection<Recette>
+    model --> controller: $recettes
+    controller -> view: render('recette.index', $recettes)
+    view --> browser: Display updated list
+    browser --> user: Show updated list + success message
+end
+
+note over controller
+    **RecetteController Methods:**
+    - index(): Display all recettes
+    - create(): Show create form
+    - store(): Save new recette
+    - show(): Display single recette
+    - edit(): Show edit form
+    - update(): Save changes
+    - destroy(): Delete recette
+end note
+
+note over model
+    **Recette Model Features:**
+    - Fillable: title, body
+    - HasFactory trait for testing
+    - Table name: recettes
+    - Eloquent ORM operations
+end note
+
+note over middleware
+    **Middleware Pipeline:**
+    - CSRF token validation
+    - Authentication check
+    - Request validation
+end note
+
+@enduml
